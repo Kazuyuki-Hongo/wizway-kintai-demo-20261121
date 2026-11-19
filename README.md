@@ -21,12 +21,10 @@ cd wizway-kintai-demo-20261121
 
 ## 動いている画面（学習用・見本とは別）
 
-デプロイ後にここに書く。
+- フロント: https://d2ub54l8wsj1sg.cloudfront.net
+- API: https://7p05ld5qkk.execute-api.ap-northeast-1.amazonaws.com/prod
 
-- フロント: （未デプロイ）
-- API: （未デプロイ）
-
-上の URL はダミー専用。本番の勤怠データは見えない。
+上の URL はダミー専用。本番の勤怠データは見えない。見本（`wizway-kintai-demo`）とは別スタック・別 URL。
 
 ## このリポジトリの中身
 
