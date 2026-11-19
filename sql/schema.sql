@@ -30,6 +30,7 @@ CREATE TABLE attendance_rows (
   clock_in TEXT,
   clock_out TEXT,
   break_time TEXT,
+  note TEXT,
   UNIQUE (employee_id, work_date)
 );
 
@@ -43,10 +44,12 @@ CREATE TABLE attendance_edits (
   before_clock_in TEXT,
   before_clock_out TEXT,
   before_break_time TEXT,
+  before_note TEXT,
   after_category TEXT,
   after_clock_in TEXT,
   after_clock_out TEXT,
-  after_break_time TEXT
+  after_break_time TEXT,
+  after_note TEXT
 );
 
 CREATE TABLE leave_requests (

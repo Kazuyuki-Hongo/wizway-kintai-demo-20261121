@@ -1,0 +1,32 @@
+---
+description: OpenSpec を使わない docs フォルダ仕様駆動（要件・計画が docs/ にあるとき）
+alwaysApply: true
+---
+
+# docs フォルダ仕様駆動（OpenSpec なし）
+
+要件定義書・実装計画が `docs/<案件名>/` にあり、**その案件で OpenSpec change／specs を作らない**と明示されているときは、OpenSpec ゲートよりその文書を優先する。
+
+## 正本
+
+| 役割 | 置き場 |
+|------|--------|
+| 仕様の唯一ソース | `docs/<案件名>/要件定義書.md` |
+| 実装手順の正本 | `docs/<案件名>/実装計画.md`（Phase / Step） |
+| 進捗 | 実装計画のタスクチェックリスト（完了したら `- [x]`） |
+
+仕様の再発明をしない。Plan の書き直しや OpenSpec への載せ替えは、ユーザーが明示したときだけ。
+
+## Build の進め方
+
+1. Serena `initial_instructions`（挙動変更時は必須）
+2. 実装計画を上から順に。各 Step の編集対象と完了条件を守る
+3. Step 完了ごとにチェックリストを更新する
+4. 検証の理想パス（画面・API 契約を変えた案件）:
+   - ローカル API テスト → **ローカル E2E 緑**
+   - そのあと **学習用 AWS デプロイ**
+   - そのあと **`PLAYWRIGHT_BASE_URL` を CloudFront に向けた AWS E2E パス**
+5. ローカル E2E が赤のままデプロイしない
+
+OpenSpec 必須の通常案件は `.cursor/rules/openspec-serena-workflow.mdc` に従う。  
+詳細・例: `docs/rules/project-rules-serena.md` の「OpenSpec なし」節、Serena `mem:docs-spec-driven`

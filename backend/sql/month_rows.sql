@@ -27,6 +27,10 @@ SELECT
     ELSE COALESCE(attendance_rows.break_time, '')
   END AS break_time,
   CASE
+    WHEN attendance_rows.id IS NULL THEN ''
+    ELSE COALESCE(attendance_rows.note, '')
+  END AS note,
+  CASE
     WHEN attendance_rows.id IS NULL THEN 0
     ELSE 1
   END AS stored

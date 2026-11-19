@@ -10,8 +10,8 @@
 
 ## Tests
 - `npm run test:api` — pytest。`PYTHONNOUSERSITE=1` だと user の pytest を見失う → 外す
-- `npm run pw:install` / `npm run pw:test:attendance`
-- デプロイ済み E2E: `$env:PLAYWRIGHT_BASE_URL='https://d266q7koncqwt6.cloudfront.net'; npm run pw:test:attendance`
+- `npm run pw:install` / ローカル E2E: `npm run pw:test:attendance`（`PLAYWRIGHT_BASE_URL` 無し）
+- 理想: ローカル E2E 緑 → AWS デプロイ → AWS E2E: `$env:PLAYWRIGHT_BASE_URL='https://d266q7koncqwt6.cloudfront.net'; npm run pw:test:attendance`
 
 ## Deploy (学習用のみ)
 - `aws sts get-caller-identity --profile deploy-jisseki` — Account 655129713987 を確認。`deploy` は本番箱のことがある

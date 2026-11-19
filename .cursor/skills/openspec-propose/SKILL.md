@@ -3,7 +3,7 @@ name: openspec-propose
 description: Propose a new OpenSpec change with all artifacts generated in one step. Use when the user wants to quickly describe what they want to build and get a complete proposal with design, specs, and tasks ready for implementation. Also use when the user says "openspec propose" or "opsx propose".
 allowed-tools: Bash(openspec:*)
 license: MIT
-compatibility: Requires openspec CLI and Serena MCP (serena_wizway_kintai_demo).
+compatibility: Requires openspec CLI.
 metadata:
   author: openspec
   version: "1.0"
@@ -11,21 +11,6 @@ metadata:
 ---
 
 Propose a new change - create the change and generate all artifacts in one step.
-
-**Serena MCP 接続ゲート（必須・最初に実行）**
-
-propose も既存コード調査を伴うため、Serena が接続済みであることを確認してから次に進む。
-
-1. `CallDynamicTool` で Serena の `initial_instructions` を呼ぶ（Cursor 上の namespaceは `mcp.json` の `serena_wizway_kintai_demo` と異なり `user-serena` 等のことがある。失敗したら Available servers から Serena を特定する）
-2. **接続できない場合**:
-   - ユーザーに **Serena MCP 未接続** と明示する
-   - `.cursor/mcp.json` と Cursor MCP 画面で `serena_wizway_kintai_demo` が緑か、`uvx` / Python 3.13 を案内する
-   - **`openspec new change` も artifact 作成も行わない**
-   - **作業をここで中断**する
-3. **接続できた場合**:
-   - 調査は `get_symbols_overview` / `find_symbol` / `search_for_pattern` を優先する
-   - 編集対象の調査範囲は `frontend/`、`backend/`、`sql/`、`template.yaml`
-   - PHP、開発 VM、`php -l` の手順は使わない
 
 **Planning boundary**: This workflow creates planning artifacts only. The user request that selected or triggered this workflow authorizes planning only, even if it asks to build or fix something. Do not edit project code. After the planning artifacts are complete, stop. Do not start implementation in the same response, even if the initial request asks for it. Wait for a new user request after the artifacts are presented; then start the apply workflow.
 

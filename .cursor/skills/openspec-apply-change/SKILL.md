@@ -3,7 +3,7 @@ name: openspec-apply-change
 description: Implement tasks from an OpenSpec change. Use when the user wants to start implementing, continue implementation, or work through tasks. Also use when the user says "openspec apply", "opsx apply", or "openspec implement".
 allowed-tools: Bash(openspec:*)
 license: MIT
-compatibility: Requires openspec CLI and Serena MCP (serena_wizway_kintai_demo).
+compatibility: Requires openspec CLI.
 metadata:
   author: openspec
   version: "1.0"
@@ -11,23 +11,6 @@ metadata:
 ---
 
 Implement tasks from an OpenSpec change.
-
-**Serena MCP 接続ゲート（必須・最初に実行）**
-
-コード変更に入る**前**に、Serena が接続済みであることを確認する。change 選択より先。
-
-1. `CallDynamicTool` で Serena の `initial_instructions` を呼ぶ（Cursor 上の namespaceは `mcp.json` の `serena_wizway_kintai_demo` と異なり `user-serena` 等のことがある。失敗したら Available servers から Serena を特定する）
-2. **接続できない場合**（サーバー不在・呼び出しエラー）:
-   - ユーザーに **Serena MCP 未接続** と明示する
-   - `.cursor/mcp.json` の確認、Cursor MCP 画面で `serena_wizway_kintai_demo` が緑か、`uvx` / Python 3.13 を案内する
-   - **`openspec instructions apply` 以降の実装・コード編集を行わない**
-   - **作業をここで中断**し、接続後に `/opsx-apply` を再実行するよう促す
-3. **接続できた場合**:
-   - 調査は `get_symbols_overview` / `find_symbol` / `search_for_pattern` / `find_referencing_symbols` を優先する
-   - 編集対象は `frontend/`、`backend/`、`sql/`、`template.yaml`
-   - PHP、開発 VM、`php -l` の手順は使わない
-
-Announce: `Serena bootstrap complete.`
 
 **Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `schemas`, `view`). Once selected, treat `--store <id>` as sticky for the rest of the workflow. Every unscoped example of those commands below is shorthand: before running it, append the flag. For example, run `openspec status --change "<name>" --json --store "<id>"`, not the unscoped form shown below. Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
 

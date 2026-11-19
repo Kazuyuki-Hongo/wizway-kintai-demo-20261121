@@ -98,6 +98,12 @@ Resources:
             ApiId: !Ref KintaiHttpApi
             Path: /demo/error
             Method: GET
+        DemoUnimplementedGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref KintaiHttpApi
+            Path: /demo/unimplemented
+            Method: GET
 
   DemoDbBucket:
     Type: AWS::S3::Bucket

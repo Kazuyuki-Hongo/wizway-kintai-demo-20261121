@@ -76,13 +76,24 @@ tests/e2e/    Playwright（ルートの playwright.config.ts）
 | 作業 | OpenSpec | Serena |
 |------|----------|--------|
 | 挙動変更・複数ファイル | 必須 | 必須（`initial_instructions` ゲート） |
+| docs フォルダ仕様駆動（要件で OpenSpec 対象外と明示） | 不要 | 必須 |
 | コメント・typo・ドキュメントのみ | 不要 | 不要 |
 
 1. セッション初回: Serena `initial_instructions`
-2. 失敗したら実装しない。接続後に `/opsx-apply` をやり直す
+2. 失敗したら実装しない。接続後に `/opsx-apply` をやり直す（OpenSpec 案件）
 3. 既存コードは `get_symbols_overview` / `find_symbol` / `search_for_pattern` を優先
 4. 行番号は Serena **0-based**
 5. PHP・開発 VM・`php -l` の手順は持ち込まない
+
+### OpenSpec なし（docs フォルダ仕様駆動）
+
+要件・計画が `docs/<案件名>/要件定義書.md` と `実装計画.md` にあり、OpenSpec 対象外と書いてあるとき:
+
+- 仕様の唯一ソースは要件定義書。実装手順の正本は実装計画の Phase / Step
+- OpenSpec change／specs は作らない。仕様の再発明もしない
+- 実装計画のタスクチェックリストを進捗の正とし、完了したら `- [x]`
+- Cursor ルール: `.cursor/rules/docs-spec-driven.mdc`。Serena: `mem:docs-spec-driven`
+- 例: `docs/日ごとの備考/`
 
 ---
 
@@ -91,8 +102,11 @@ tests/e2e/    Playwright（ルートの playwright.config.ts）
 | 種類 | コマンド |
 |------|----------|
 | API ユニット | `npm run test:api`（`python -m pytest backend/tests -q`） |
-| E2E | `npm run pw:test:attendance` |
+| ローカル E2E | `npm run pw:test:attendance`（`PLAYWRIGHT_BASE_URL` 無し） |
+| AWS E2E | `$env:PLAYWRIGHT_BASE_URL='https://d266q7koncqwt6.cloudfront.net'; npm run pw:test:attendance` |
 | DB 再生成 | `python sql/build_db.py` |
+
+画面・API 契約を変えた案件の理想順: **ローカル E2E 緑 → 学習用 AWS デプロイ → AWS E2E パス**。ローカルが赤のままデプロイしない。
 
 `PYTHONNOUSERSITE=1` のシェルでは user の pytest が見えないことがある。外してからユニットを回す。
 

@@ -15,8 +15,10 @@
 
 ## Invariants
 - 挙動変更は OpenSpec change + Serena（`initial_instructions` ゲート）。編集範囲: frontend/backend/sql/template.yaml
+- 例外: `docs/<案件>/` で OpenSpec 対象外と明示 → `mem:docs-spec-driven`（Serena は必須のまま）
 - 学習用 AWS のみデプロイ。本番箱（例: 023194178508）なら中止。スタック名 `wizway-kintai-demo`
 - 見本 URL は README と学習パック導入メモのみ。コース本文に書かない
+- 利用者に見える文は日本語。詳細は `mem:user-facing-language`
 - HTTP API stage `/prod` は `_path` で strip
 
 ## Further
@@ -25,3 +27,4 @@
 - 画面: `mem:frontend/core`
 - API/SQL: `mem:backend/core`
 - OpenSpec: `mem:openspec/core`
+- OpenSpec なし（docs 仕様駆動）: `mem:docs-spec-driven`

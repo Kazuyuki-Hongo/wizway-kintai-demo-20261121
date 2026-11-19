@@ -1,9 +1,38 @@
-# wizway-kintai-demo
+# wizway-kintai-demo-20261121
 
-学習パック向けの勤怠デモ。  
-ダミー社員の月次勤怠表と合計を返し、保存済みの日を更新できる。本番の勤怠（wizway_kintai）とは別リポジトリ。
+フィック研修（2026-11-21）用の勤怠デモ。  
+希望者がクローンして、Cursor / Claude Code / Codex など任意のアプリで開く。本番の勤怠（wizway_kintai）とは別リポジトリ。
 
-**OpenSpec + Serena 導入済みの見本。** 仕様駆動の型は次のフォルダにある。
+完成見本は [`wizway-kintai-demo`](https://github.com/Kazuyuki-Hongo/wizway-kintai-demo)。こちらは研修当日に足す機能がまだ無い状態から始める。
+
+## クローン（希望者）
+
+```powershell
+git clone https://github.com/Kazuyuki-Hongo/wizway-kintai-demo-20261121.git
+cd wizway-kintai-demo-20261121
+```
+
+開くアプリは自由。研修中に本郷が出す指示は Zoom チャットにも貼る。同じ指示を手元でも試してよいし、見てるだけでもよい。
+
+触らないもの:
+
+- 本番の勤怠リポジトリ・本番 AWS
+- 見本リポ `wizway-kintai-demo` の学習用 URL（画面は別）
+
+## 動いている画面（学習用・見本とは別）
+
+デプロイ後にここに書く。
+
+- フロント: （未デプロイ）
+- API: （未デプロイ）
+
+上の URL はダミー専用。本番の勤怠データは見えない。
+
+## このリポジトリの中身
+
+ダミー社員の月次勤怠表と合計を返し、保存済みの日を更新できる。
+
+**OpenSpec + Serena 導入済み。** 仕様駆動の型は次のフォルダにある。
 
 - `docs/rules/project-rules-serena.md` と `.serena/memories/` — Serena の約束と覚え書き
 - `openspec/specs/` — いまの仕様
@@ -31,13 +60,6 @@ SQL 演習はデプロイ先の S3 共有 DB ではなく、リポジトリ内�
 
 データは Lambda に同梱した SQLite が初期データ。更新は学習用アカウントの非公開 S3 にある共有ファイルへ書き、次の読み取りからも見える。2026-11-02 から 2026-11-20 の平日だけを3人ぶん入れ、土日と11月1日・21日以降は空で、その場で入力できる。DynamoDB と RDS は使わない。
 
-## 動いている画面（デプロイ済み）
-
-- フロント: https://d266q7koncqwt6.cloudfront.net
-- API: https://335nxj9000.execute-api.ap-northeast-1.amazonaws.com/prod
-
-上の URL はダミー専用。本番の勤怠データは見えない。
-
 ## 構成
 
 ```
@@ -45,7 +67,7 @@ backend/          Python Lambda（API + 同梱 SQLite）
 frontend/         React + TypeScript（Vite）
 sql/              表定義・シード・合計 SELECT
 template.yaml     SAM（HTTP API + Lambda + S3 + CloudFront）
-docs/architecture.drawio  構成図
+docs/architecture.drawio / architecture.md  構成図（draw.io / Markdown）
 docs/rules/       Serena のプロジェクトルール
 openspec/         仕様と change（進行中と archive）
 backend/tests/    API の pytest
@@ -55,14 +77,15 @@ tests/e2e/        画面の受け入れ確認（Playwright）
 ### 構成図
 
 ブラウザ → CloudFront → S3（画面）  
-ブラウザ → HTTP API → Lambda → 同梱 SQLite
+ブラウザ → HTTP API → Lambda → 同梱 SQLite（更新は S3 共有へ）
 
-詳細: `docs/architecture.drawio`
+詳細: [`docs/architecture.drawio`](docs/architecture.drawio)（draw.io）／[`docs/architecture.md`](docs/architecture.md)（Markdown・Mermaid）
 
-## 前提
+## 前提（メンテ・デプロイする人）
 
 - AWS CLI / SAM CLI / Node.js
 - 学習用 AWS アカウントの Deployer（本番勤怠のアカウントには載せない）
+- スタック名は `wizway-kintai-demo-20261121`（見本の `wizway-kintai-demo` と分ける）
 
 ```powershell
 aws sso login --profile <自分のプロファイル名>
@@ -86,7 +109,7 @@ Windows で SAM CLI が `botocore` で落ちるときは、同じシェルで `P
 ```powershell
 $env:PYTHONNOUSERSITE='1'
 sam build
-sam deploy --profile <自分のプロファイル名>
+sam deploy --profile <自分のプロファイル名> --no-confirm-changeset
 ```
 
 Outputs: `ApiUrl` / `FrontendBucketName` / `FrontendUrl` / `CloudFrontDistributionId`

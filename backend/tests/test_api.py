@@ -135,6 +135,7 @@ def test_month_rows_include_missing_clock_out_and_absence():
     assert normal["clock_in"] == "09:00"
     assert normal["clock_out"] == "18:00"
     assert normal["break_time"] == "01:00"
+    assert normal["note"] == ""
     assert normal["stored"] is True
     assert len(rows) == 30
     assert [r["work_date"] for r in rows] == [
@@ -143,6 +144,7 @@ def test_month_rows_include_missing_clock_out_and_absence():
     empty = next(r for r in rows if r["work_date"] == "2026-11-01")
     assert empty["stored"] is False
     assert empty["category"] == ""
+    assert empty["note"] == ""
     assert next(r for r in rows if r["work_date"] == "2026-11-20")["stored"] is True
     assert next(r for r in rows if r["work_date"] == "2026-11-21")["stored"] is False
     assert next(r for r in rows if r["work_date"] == "2026-11-07")["stored"] is False
@@ -152,6 +154,7 @@ def test_month_rows_include_missing_clock_out_and_absence():
     absent = next(r for r in rows if r["work_date"] == "2026-11-05")
     assert absent["stored"] is True
     assert absent["category"] == "欠勤"
+    assert absent["note"] == ""
 
 
 def test_overview_returns_each_employee_summary():
@@ -286,6 +289,7 @@ def day_payload(**overrides):
         "clock_in": "09:00",
         "clock_out": "18:00",
         "break_time": "01:00",
+        "note": "",
     }
     payload.update(overrides)
     return payload
@@ -398,6 +402,67 @@ def test_put_rejects_missing_field_without_change():
     result, _ = call(nov2(), "PUT", payload)
     assert result["statusCode"] == 400
     assert row_on("2026-11-02")["clock_out"] == "18:00"
+
+
+def test_put_saves_and_clears_note_including_newline():
+    result, _ = call(nov2(), "PUT", day_payload(note="客先A\n二行目"))
+    assert result["statusCode"] == 200
+    assert body(result)["note"] == "客先A\n二行目"
+    assert row_on("2026-11-02")["note"] == "客先A\n二行目"
+
+    result, _ = call(nov2(), "PUT", day_payload(note=""))
+    assert result["statusCode"] == 200
+    assert body(result)["note"] == ""
+    assert row_on("2026-11-02")["note"] == ""
+
+
+def test_put_rejects_note_over_100_without_change():
+    before = row_on("2026-11-02")
+    result, _ = call(nov2(), "PUT", day_payload(note="あ" * 101))
+    assert result["statusCode"] == 400
+    assert body(result)["reason"] == "備考は100文字以内にしてください"
+    after = row_on("2026-11-02")
+    assert after["note"] == before["note"]
+    assert after["clock_in"] == before["clock_in"]
+
+
+def test_put_rejects_missing_note_without_change():
+    payload = day_payload()
+    del payload["note"]
+    result, _ = call(nov2(), "PUT", payload)
+    assert result["statusCode"] == 400
+    assert "備考" in body(result)["reason"]
+    assert row_on("2026-11-02")["clock_out"] == "18:00"
+
+
+def test_put_rejects_non_string_note_without_change():
+    payload = day_payload()
+    payload["note"] = 1
+    result, _ = call(nov2(), "PUT", payload)
+    assert result["statusCode"] == 400
+    assert body(result)["reason"] == "入力の形式が正しくありません"
+    assert row_on("2026-11-02")["note"] == ""
+
+
+def test_note_change_is_recorded_in_edits():
+    call(nov2(), "PUT", day_payload(note="客先A"))
+    result, _ = call(nov2(), "PUT", day_payload(note="客先B"))
+    assert result["statusCode"] == 200
+    edit = edits_for("2026-11-02")[0]
+    assert edit["before_note"] == "客先A"
+    assert edit["after_note"] == "客先B"
+
+
+def test_forbidden_put_does_not_write_note():
+    login_as("サンプル海原", "unahara")
+    result, _ = call(
+        "/employees/1/months/2026-11/days/2026-11-02",
+        "PUT",
+        day_payload(note="他人の備考"),
+    )
+    assert result["statusCode"] == 403
+    login_as("テスト青空", "aozora")
+    assert row_on("2026-11-02")["note"] == ""
 
 
 def test_put_rejects_bad_target_without_creating_a_row(runtime_db):
@@ -518,9 +583,8 @@ def test_half_day_counts_actual_hours():
     )
     assert result["statusCode"] == 200
     summary = _summary()
-    # month_summary は通常出勤だけを出勤日数・実働に入れる
-    assert summary["workday_count"] == 14
-    assert summary["total_worked_hours"] == 105.0
+    assert summary["workday_count"] == 15
+    assert summary["total_worked_hours"] == 109.0
     assert summary["overtime_hours"] == 1.0
     assert summary["missing_clock_out_count"] == 1
 
@@ -533,10 +597,10 @@ def test_half_day_without_clock_out_adds_a_missing_day():
     )
     assert result["statusCode"] == 200
     summary = _summary()
-    assert summary["workday_count"] == 14
+    assert summary["workday_count"] == 15
     assert summary["total_worked_hours"] == 105.0
     assert summary["overtime_hours"] == 1.0
-    assert summary["missing_clock_out_count"] == 1
+    assert summary["missing_clock_out_count"] == 2
 
 
 def test_unknown_category_is_rejected():
@@ -631,10 +695,12 @@ def test_successful_save_records_editor_and_before_after():
     assert edit["before_clock_in"] == "09:00"
     assert edit["before_clock_out"] == "18:00"
     assert edit["before_break_time"] == "01:00"
+    assert edit["before_note"] == ""
     assert edit["after_category"] == "有休"
     assert edit["after_clock_in"] == ""
     assert edit["after_clock_out"] == ""
     assert edit["after_break_time"] == ""
+    assert edit["after_note"] == ""
 
 
 def test_new_day_edit_has_empty_before():
@@ -651,8 +717,10 @@ def test_new_day_edit_has_empty_before():
     assert edit["before_clock_in"] == ""
     assert edit["before_clock_out"] == ""
     assert edit["before_break_time"] == ""
+    assert edit["before_note"] == ""
     assert edit["after_category"] == "通常出勤"
     assert edit["after_clock_in"] == "09:00"
+    assert edit["after_note"] == ""
 
 
 def test_missing_editor_is_the_target_employee():
@@ -962,6 +1030,12 @@ def test_old_employees_table_keeps_attendance_rows(runtime_db):
     finally:
         conn.close()
     assert all(row[0] for row in hashes)
+
+
+def test_demo_unimplemented_returns_501_with_japanese_reason():
+    result, _ = call("/demo/unimplemented")
+    assert result["statusCode"] == 501
+    assert body(result)["reason"] == "この機能はまだ実装されていません"
 
 
 def test_demo_error_raises_with_marker():

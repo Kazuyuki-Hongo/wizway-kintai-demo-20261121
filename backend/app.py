@@ -36,6 +36,7 @@ EXPORT_PATH = re.compile(r"^/months/(.+)/export/?$")
 LOGIN_PATH = re.compile(r"^/login/?$")
 LOGOUT_PATH = re.compile(r"^/logout/?$")
 DEMO_ERROR_PATH = re.compile(r"^/demo/error/?$")
+DEMO_UNIMPLEMENTED_PATH = re.compile(r"^/demo/unimplemented/?$")
 _MARKER_UNSAFE = re.compile(r"[^\w\-]")
 
 DEMO_PASSWORDS = {
@@ -60,7 +61,7 @@ SQL_DIR = Path(__file__).resolve().parent.parent / "sql"
 SEED_PATH = Path(__file__).resolve().parent / "data" / "attendance.db"
 _LOCAL_RUNTIME: Path | None = None
 
-UPDATE_FIELDS = ("category", "clock_in", "clock_out", "break_time")
+UPDATE_FIELDS = ("category", "clock_in", "clock_out", "break_time", "note")
 TIMED_CATEGORIES = ("通常出勤", "半休")
 EMPTY_CATEGORIES = ("欠勤", "有休")
 ALLOWED_CATEGORIES = TIMED_CATEGORIES + EMPTY_CATEGORIES
@@ -74,6 +75,7 @@ CREATE TABLE attendance_rows (
   clock_in TEXT,
   clock_out TEXT,
   break_time TEXT,
+  note TEXT,
   UNIQUE (employee_id, work_date)
 )
 """
@@ -97,10 +99,12 @@ CREATE TABLE IF NOT EXISTS attendance_edits (
   before_clock_in TEXT,
   before_clock_out TEXT,
   before_break_time TEXT,
+  before_note TEXT,
   after_category TEXT,
   after_clock_in TEXT,
   after_clock_out TEXT,
-  after_break_time TEXT
+  after_break_time TEXT,
+  after_note TEXT
 )
 """
 
@@ -334,6 +338,25 @@ def _ensure_admin(conn: sqlite3.Connection) -> None:
     _fill_password_hashes(conn)
 
 
+def _ensure_note_columns(conn: sqlite3.Connection) -> None:
+    """既存 DB に備考列が無ければ足す。"""
+    names = _table_names(conn)
+    if "attendance_rows" in names:
+        row_columns = {
+            row[1] for row in conn.execute("PRAGMA table_info(attendance_rows)")
+        }
+        if "note" not in row_columns:
+            conn.execute("ALTER TABLE attendance_rows ADD COLUMN note TEXT")
+    if "attendance_edits" in names:
+        edit_columns = {
+            row[1] for row in conn.execute("PRAGMA table_info(attendance_edits)")
+        }
+        if "before_note" not in edit_columns:
+            conn.execute("ALTER TABLE attendance_edits ADD COLUMN before_note TEXT")
+        if "after_note" not in edit_columns:
+            conn.execute("ALTER TABLE attendance_edits ADD COLUMN after_note TEXT")
+
+
 def _ensure_schema(conn: sqlite3.Connection) -> None:
     """古い区分制約のファイルでも、行を残したまま半休と有休を許す。"""
     _ensure_login_schema(conn)
@@ -346,21 +369,38 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
         if "半休" in ddl and "有休" in ddl:
             if "attendance_rows_old" in names:
                 conn.execute("DROP TABLE attendance_rows_old")
+            _ensure_note_columns(conn)
             return
         conn.execute("ALTER TABLE attendance_rows RENAME TO attendance_rows_old")
     elif "attendance_rows_old" not in names:
+        _ensure_note_columns(conn)
         return
+    old_columns = {
+        row[1] for row in conn.execute("PRAGMA table_info(attendance_rows_old)")
+    }
     conn.execute(ROWS_DDL)
-    conn.execute(
-        """
-        INSERT INTO attendance_rows (
-          id, employee_id, work_date, category, clock_in, clock_out, break_time
+    if "note" in old_columns:
+        conn.execute(
+            """
+            INSERT INTO attendance_rows (
+              id, employee_id, work_date, category, clock_in, clock_out, break_time, note
+            )
+            SELECT id, employee_id, work_date, category, clock_in, clock_out, break_time, note
+            FROM attendance_rows_old
+            """
         )
-        SELECT id, employee_id, work_date, category, clock_in, clock_out, break_time
-        FROM attendance_rows_old
-        """
-    )
+    else:
+        conn.execute(
+            """
+            INSERT INTO attendance_rows (
+              id, employee_id, work_date, category, clock_in, clock_out, break_time
+            )
+            SELECT id, employee_id, work_date, category, clock_in, clock_out, break_time
+            FROM attendance_rows_old
+            """
+        )
     conn.execute("DROP TABLE attendance_rows_old")
+    _ensure_note_columns(conn)
 
 
 def _connect() -> sqlite3.Connection:
@@ -439,6 +479,7 @@ def _month_rows(conn: sqlite3.Connection, employee_id: int, ym: str) -> list[dic
             "clock_in": r["clock_in"],
             "clock_out": r["clock_out"],
             "break_time": r["break_time"],
+            "note": r["note"],
             "stored": bool(r["stored"]),
         }
         for r in rows
@@ -642,21 +683,22 @@ def _blank(value) -> str:
 
 def _insert_edit(conn, editor_id: int, employee_id: int, work_date: str, before, fields: dict[str, str]) -> None:
     if before is None:
-        before_values = (None, None, None, None)
+        before_values = (None, None, None, None, None)
     else:
         before_values = (
             before["category"],
             before["clock_in"],
             before["clock_out"],
             before["break_time"],
+            before["note"],
         )
     conn.execute(
         """
         INSERT INTO attendance_edits (
           edited_at, editor_employee_id, target_employee_id, work_date,
-          before_category, before_clock_in, before_clock_out, before_break_time,
-          after_category, after_clock_in, after_clock_out, after_break_time
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          before_category, before_clock_in, before_clock_out, before_break_time, before_note,
+          after_category, after_clock_in, after_clock_out, after_break_time, after_note
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             datetime.now().astimezone().isoformat(timespec="seconds"),
@@ -668,6 +710,7 @@ def _insert_edit(conn, editor_id: int, employee_id: int, work_date: str, before,
             _blank_to_null(fields["clock_in"]),
             _blank_to_null(fields["clock_out"]),
             _blank_to_null(fields["break_time"]),
+            _blank_to_null(fields["note"]),
         ),
     )
 
@@ -685,10 +728,12 @@ def _month_edits(conn: sqlite3.Connection, employee_id: int, ym: str) -> list[di
           e.before_clock_in,
           e.before_clock_out,
           e.before_break_time,
+          e.before_note,
           e.after_category,
           e.after_clock_in,
           e.after_clock_out,
-          e.after_break_time
+          e.after_break_time,
+          e.after_note
         FROM attendance_edits AS e
         JOIN employees AS editor ON editor.id = e.editor_employee_id
         WHERE e.target_employee_id = ?
@@ -708,10 +753,12 @@ def _month_edits(conn: sqlite3.Connection, employee_id: int, ym: str) -> list[di
             "before_clock_in": _blank(row["before_clock_in"]),
             "before_clock_out": _blank(row["before_clock_out"]),
             "before_break_time": _blank(row["before_break_time"]),
+            "before_note": _blank(row["before_note"]),
             "after_category": _blank(row["after_category"]),
             "after_clock_in": _blank(row["after_clock_in"]),
             "after_clock_out": _blank(row["after_clock_out"]),
             "after_break_time": _blank(row["after_break_time"]),
+            "after_note": _blank(row["after_note"]),
         }
         for row in rows
     ]
@@ -741,7 +788,7 @@ def _update_day(employee_raw: str, ym: str, work_date: str, event):
         if data is None:
             return _reject("送信内容を読めませんでした")
         if any(key not in data for key in UPDATE_FIELDS):
-            return _reject("区分、出勤、退勤、休憩をすべて送ってください")
+            return _reject("区分、出勤、退勤、休憩、備考をすべて送ってください")
         fields: dict[str, str] = {}
         for key in UPDATE_FIELDS:
             value = data[key]
@@ -750,13 +797,15 @@ def _update_day(employee_raw: str, ym: str, work_date: str, event):
             if not isinstance(value, str):
                 return _reject("入力の形式が正しくありません")
             fields[key] = value
+        if len(fields["note"]) > 100:
+            return _reject("備考は100文字以内にしてください")
         reason = _validate_fields(fields)
         if reason:
             return _reject(reason)
 
         before = conn.execute(
             """
-            SELECT category, clock_in, clock_out, break_time
+            SELECT category, clock_in, clock_out, break_time, note
             FROM attendance_rows
             WHERE employee_id = ? AND work_date = ?
             """,
@@ -767,6 +816,7 @@ def _update_day(employee_raw: str, ym: str, work_date: str, event):
             _blank_to_null(fields["clock_in"]),
             _blank_to_null(fields["clock_out"]),
             _blank_to_null(fields["break_time"]),
+            _blank_to_null(fields["note"]),
             employee_id,
             work_date,
         )
@@ -774,7 +824,7 @@ def _update_day(employee_raw: str, ym: str, work_date: str, event):
             conn.execute(
                 """
                 UPDATE attendance_rows
-                SET category = ?, clock_in = ?, clock_out = ?, break_time = ?
+                SET category = ?, clock_in = ?, clock_out = ?, break_time = ?, note = ?
                 WHERE employee_id = ? AND work_date = ?
                 """,
                 values,
@@ -783,10 +833,18 @@ def _update_day(employee_raw: str, ym: str, work_date: str, event):
             conn.execute(
                 """
                 INSERT INTO attendance_rows (
-                  employee_id, work_date, category, clock_in, clock_out, break_time
-                ) VALUES (?, ?, ?, ?, ?, ?)
+                  employee_id, work_date, category, clock_in, clock_out, break_time, note
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
-                (employee_id, work_date, values[0], values[1], values[2], values[3]),
+                (
+                    employee_id,
+                    work_date,
+                    values[0],
+                    values[1],
+                    values[2],
+                    values[3],
+                    values[4],
+                ),
             )
         _insert_edit(conn, editor_id, employee_id, work_date, before, fields)
         conn.commit()
@@ -801,6 +859,7 @@ def _update_day(employee_raw: str, ym: str, work_date: str, event):
             "clock_in": fields["clock_in"],
             "clock_out": fields["clock_out"],
             "break_time": fields["break_time"],
+            "note": fields["note"],
             "stored": True,
         },
     )
@@ -919,6 +978,9 @@ def lambda_handler(event, context):
 
     if method == "GET" and DEMO_ERROR_PATH.match(path):
         _raise_demo_error(event)
+
+    if method == "GET" and DEMO_UNIMPLEMENTED_PATH.match(path):
+        return _response(501, {"reason": "この機能はまだ実装されていません"})
 
     if method == "POST" and LOGIN_PATH.match(path):
         return _login(event)

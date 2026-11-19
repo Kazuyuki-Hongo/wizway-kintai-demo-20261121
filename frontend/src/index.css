@@ -30,6 +30,55 @@ h1 {
   font-size: 0.95rem;
 }
 
+.who {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin: 0 0 0.75rem;
+}
+
+.who .probe {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: #777;
+  background: transparent;
+  border: 1px solid #ccc;
+}
+
+.shell {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 8.5rem;
+}
+
+.menu button[aria-current='page'] {
+  font-weight: 700;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.accounts {
+  width: auto;
+  margin: 0 0 1.25rem;
+}
+
+.accounts caption {
+  caption-side: top;
+  text-align: left;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
 .controls {
   display: flex;
   flex-wrap: wrap;
@@ -46,10 +95,13 @@ label {
 }
 
 select,
+input[type="text"],
 input[type="month"] {
   min-width: 12rem;
   padding: 0.4rem 0.5rem;
   font-size: 1rem;
+  background: #fff;
+  border: 1px solid #8d97a3;
 }
 
 td select,
@@ -66,8 +118,24 @@ td button {
 }
 
 .error {
-  color: #b00020;
-  margin-bottom: 1rem;
+  color: #7a0016;
+  background: #fdecee;
+  border: 1px solid #b00020;
+  padding: 0.65rem 0.75rem;
+  margin: 0 0 1rem;
+  font-weight: 600;
+}
+
+.saved {
+  color: #0b6b2a;
+  margin: 0.35rem 0 0;
+}
+
+.edits {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+  color: #333;
+  font-size: 0.8rem;
 }
 
 .summary {
