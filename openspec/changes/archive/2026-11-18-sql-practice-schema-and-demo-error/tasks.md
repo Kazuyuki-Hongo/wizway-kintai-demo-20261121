@@ -1,4 +1,4 @@
-# Tasks
+# タスク
 
 ## 1. 演習用スキーマと seed
 
@@ -16,7 +16,7 @@
 
 - [x] 3.1 README に、ローカル SQLite での SQL 演習と `GET /demo/error` の一行を足す
 
-## Workflow follow-up
+## 作業後の続き
 
 - 学習パック `0.共通/08.現場でよく使う型.md` を勤怠デモのローカル SQLite 前提に書き換える（本リポの archive 外）
 - 変更を archive するときは `/opsx-archive` を使う

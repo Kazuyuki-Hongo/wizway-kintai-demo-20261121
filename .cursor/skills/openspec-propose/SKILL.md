@@ -14,15 +14,35 @@ Propose a new change - create the change and generate all artifacts in one step.
 
 **Planning boundary**: This workflow creates planning artifacts only. The user request that selected or triggered this workflow authorizes planning only, even if it asks to build or fix something. Do not edit project code. After the planning artifacts are complete, stop. Do not start implementation in the same response, even if the initial request asks for it. Wait for a new user request after the artifacts are presented; then start the apply workflow.
 
-I'll create a change with the artifacts your schema defines. With the default spec-driven schema that is:
-- proposal.md (what & why)
-- `specs/<capability-path>/spec.md` (what the system must do - a delta, not the main spec)
-- design.md (how)
-- tasks.md (implementation steps)
+I'll create a change with the artifacts your schema defines. With this project's schema (`spec-driven-custom`) that is:
+- proposal.md（なぜ・何を変えるか）
+- `specs/<capability-path>/spec.md`（システムの振る舞いの差分。本体 spec ではない）
+- design.md（どう作るか）
+- tasks.md（実装ステップ）
 
 `<capability-path>` is the spec directory relative to `specs/` (for example, `user-auth` or `identity/user-auth`). Preserve an existing capability's full path and follow the project's established organization for new capabilities.
 
 When the user is ready to implement, they must start the apply workflow explicitly.
+
+---
+
+**Language (ja mix — required for this repo)**
+
+Readers are Japanese engineers. Prefer Japanese for human-facing text; keep only OpenSpec machine keywords in English.
+
+Write in Japanese:
+- All body text in proposal / design / tasks / specs
+- Human headings in proposal / design / tasks — use the project template headings, e.g. `変更提案` / `なぜ` / `変更内容` / `対象能力` / `新規の能力` / `変更する能力` / `影響範囲` / `設計` / `前提` / `目標` / `対象外` / `決定事項` / `リスク` / `トレードオフ` / `移行手順` / `未決事項` / `タスク` / `作業後の続き`
+- Requirement names, scenario names, and task descriptions
+
+Keep in English (do not translate — `openspec validate` / archive depend on them):
+- change name and capability path (kebab-case)
+- Spec structure: `# Spec Delta`, `## Purpose`, `## ADDED|MODIFIED|REMOVED|RENAMED Requirements`, `### Requirement:`, `#### Scenario:`
+- Normative verbs: `SHALL` / `MUST` / `MUST NOT`
+- Scenario step labels: `GIVEN` / `WHEN` / `THEN` / `AND`
+- Code identifiers (file paths, API routes, symbol names)
+
+Do **not** use the upstream English headings `Why` / `What Changes` / `Capabilities` / `Impact` / `Context` / `Goals` / `Non-Goals` / `Decisions` / `Workflow follow-up`. Follow `openspec/schemas/spec-driven-custom/templates/` and `openspec/config.yaml`.
 
 ---
 

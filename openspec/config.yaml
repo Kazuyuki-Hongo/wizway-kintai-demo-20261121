@@ -1,9 +1,22 @@
-schema: spec-driven
+schema: spec-driven-custom
 
 context: |
-  Language: ja
-  All artifacts must be written in ja.
-  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+  Language: ja（日英混在）
+  人が読む本文・見出しは日本語。OpenSpec がパースするキーワードだけ英語のまま。
+
+  日本語にするもの:
+  - proposal.md / design.md / tasks.md の見出し（変更提案・なぜ・変更内容・設計・前提・目標 / 対象外・タスク など）
+  - 要件名・シナリオ名・説明文・タスク文
+
+  英語のまま残すもの（validate / archive 用）:
+  - change 名・capability パス（kebab-case）
+  - `# Spec Delta` / `## Purpose` / `## ADDED|MODIFIED|REMOVED|RENAMED Requirements`
+  - `### Requirement:` / `#### Scenario:`
+  - `SHALL` / `MUST` / `MUST NOT`
+  - シナリオ手順ラベル `GIVEN` / `WHEN` / `THEN` / `AND`
+  - コード上の識別子（パス、関数名、API）
+
+  テンプレは `openspec/schemas/spec-driven-custom/templates/` を使う。英語見出し Why / What Changes 等は使わない。
 
   Project: wizway-kintai-demo。本番の勤怠（wizway_kintai、kintai.wizway.co.jp）とは別リポジトリ。
   学習パックの見本として、仕様駆動（OpenSpec）と Serena を必須にした、読み取り専用の勤怠デモ。
@@ -15,18 +28,20 @@ context: |
 
 rules:
   proposal:
-    - 日本語で記述する
+    - 日本語で記述する。見出しは「変更提案 / なぜ / 変更内容 / 対象能力 / 新規の能力 / 変更する能力 / 影響範囲」
     - 背景、目的、スコープ、非スコープ、リスクを含める
     - 本番勤怠リポジトリと本番 AWS アカウントを変更しないことを書く
   specs:
-    - 日本語で記述する
-    - Scenario は Given/When/Then で書く
+    - 要件・シナリオの本文は日本語。構造見出しと SHALL/MUST、GIVEN/WHEN/THEN は英語のまま
+    - Scenario は GIVEN/WHEN/THEN で書く
     - ダミーデータと、退勤が無い日、不正な年月を境界にする
   design:
+    - 日本語で記述する。見出しは「設計 / 前提 / 目標 / 対象外 / 決定事項 / リスク / トレードオフ / 移行手順 / 未決事項」
     - 新規リポジトリの置き場と、画面・API・SQL・AWS の対応を書く
     - Serena を必須にするスキルの置き場を書く
     - 本番勤怠アカウントへデプロイしない手順を書く
   tasks:
+    - 日本語で記述する。タイトルは「# タスク」。続きは「## 作業後の続き」
     - 1タスクは目安2時間以内
     - デプロイと、学習パック導入メモへの URL 追記は別タスクにする
     - アプリのコード実装と、OpenSpec スキルの Serena 化を分ける

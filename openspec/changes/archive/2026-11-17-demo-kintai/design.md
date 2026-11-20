@@ -1,25 +1,23 @@
-# Design
+# 設計
 
-## Context
+## 前提
 
-見本の置き場は `C:\00_remote_git\GitHub\wizway-kintai-demo`。OpenSpec の初回化は済んでいる。アプリのコードはまだ無い。動機は proposal.md の Why。振る舞いの契約は `specs/attendance-month` と `specs/attendance-summary`。
+見本の置き場は `C:\00_remote_git\GitHub\wizway-kintai-demo`。OpenSpec の初回化は済んでいる。アプリのコードはまだ無い。動機は proposal.md の「なぜ」。振る舞いの契約は `specs/attendance-month` と `specs/attendance-summary`。
 
 現行勤怠の時間計算は PHP にある。この初版は、同じ意味の一部（休憩を引く、8時間超過、退勤なし、欠勤）を SQL の結果として返す。PHP のソースはコピーしない。
 
-## Goals / Non-Goals
+## 目標 / 対象外
 
-**Goals:**
-
+**目標:**
 - 画面、API、SQL、載せる先の対応を1リポジトリで説明できる初版にする
 - デプロイ前に、向け先が本番勤怠のアカウントでないことを確認する
 - 挙動を変える作業は、Serena が接続しているときだけ始める
 
-**Non-Goals:**
-
+**対象外:**
 - 日次の保存、深夜、休日出勤、日付をまたぐ時刻
 - 本番勤怠のリポジトリ、開発 VM、本番アカウントへの変更
 
-## Decisions
+## 決定事項
 
 ### 1. リポジトリと構成の対応
 
@@ -79,14 +77,14 @@ Lambda は `sql/` から作った SQLite ファイルを同梱し、読み取り
 
 公開 URL が取れたあと、README と学習パックの導入メモ（common と、ウィズウェイへ配っている版）にその URL を書く。コース本文には書かない。GitHub への push は、ユーザーが指示したときだけ行う。
 
-## Risks / Trade-offs
+## リスク / トレードオフ
 
 - [SQLite の接続先を後から差し替える] → 接続先は同梱ファイルに固定し、環境変数で DB ホストを受け取らない
 - [学習用アカウントと本番アカウントの取り違え] → デプロイタスクの最初の手順をアカウント確認にし、違うときは中止する
 - [Serena 未接続だと初版の実装も止まる] → 止めるのがこのリポジトリの約束。スキルに再開手順を書く
 - [Lambda の読み取り専用ファイルは更新できない] → 初版は保存しない。保存は次の change で、置き場を決めてから足す
 
-## Migration Plan
+## 移行手順
 
 1. Serena の設定と、apply / propose スキルのゲートを先に置く
 2. `sql/`、API、画面、`template.yaml` の順で初版を作る
@@ -95,6 +93,6 @@ Lambda は `sql/` から作った SQLite ファイルを同梱し、読み取り
 5. README と導入メモに URL を書く
 6. 戻すときはスタック `wizway-kintai-demo` だけを削除する。雑メモのスタックと本番勤怠には触らない
 
-## Open Questions
+## 未決事項
 
 なし。仕様、構成、タスクの分割を変える未決は残っていない。

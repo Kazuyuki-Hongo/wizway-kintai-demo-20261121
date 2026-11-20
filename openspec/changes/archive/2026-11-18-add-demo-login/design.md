@@ -1,27 +1,25 @@
-# Design
+# 設計
 
-## Context
+## 前提
 
-動機は proposal.md の Why。パスワードの組と、ログイン後も3人の一覧を残すことは proposal.md のスコープにある。
+動機は proposal.md の「なぜ」。パスワードの組と、ログイン後も3人の一覧を残すことは proposal.md のスコープにある。
 
 リポジトリは `wizway-kintai-demo`。画面は `frontend/`。API は `backend/app.py`。表は `sql/schema.sql` と `sql/seed.sql`。公開中の共有ファイルは、学習用アカウントの非公開 S3 にある `attendance.db`。各リクエストがダウンロードし、保存が成立したときだけ書き戻す。いまの CORS は GET と PUT だけである。
 
 実装に入る前に、Serena MCP（namespace は `user-serena`）で `initial_instructions` を呼ぶ。失敗したらコードを編集しない。手順の正本は `.cursor/skills/openspec-apply-change/SKILL.md`。Serena の詳細は `docs/rules/project-rules-serena.md`。
 
-## Goals / Non-Goals
+## 目標 / 対象外
 
-**Goals:**
-
+**目標:**
 - 標準ライブラリだけでパスワードを照合し、セッションを共有ファイルに残す
 - 既存の勤怠行を消さずに、パスワード列とセッションの表を足す
 - 画面の入力者選択を、ログインした人に置き換える
 
-**Non-Goals:**
-
+**対象外:**
 - 署名用の秘密をリポジトリやテンプレートに書くこと
 - 外部の認証サービス
 
-## Decisions
+## 決定事項
 
 ### 1. パスワードはハッシュで持つ
 
@@ -57,13 +55,13 @@
 
 `openspec/specs/attendance-month/spec.md` の Purpose は、ログインしたセッションで読む文に直す。差分仕様では Purpose を変えられない。
 
-## Risks / Trade-offs
+## リスク / トレードオフ
 
 - [ログインと保存が同じファイルへ重なる] → デモの範囲では、後から書き戻した方が残る。パスワード違いのログインでは書き戻さない
 - [画面にパスワードが出る] → この3組はデモ用であり、秘密として扱わない
 - [期限の8時間は画面を開いたまま過ぎることがある] → 401 でログイン画面に戻す
 
-## Migration Plan
+## 移行手順
 
 1. 表の拡張、ログイン、セッション必須、入力者の決定を API に足し、pytest で確認する
 2. ログイン画面と、入力者の選択を外すことを足し、Playwright で確認する

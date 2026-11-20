@@ -1,25 +1,23 @@
-# Design
+# 設計
 
-## Context
+## 前提
 
 現状の SQLite は `employees` / `sessions` / `attendance_rows` / `attendance_edits`。JOIN はあるが、窓関数・承認履歴・部署階層の演習には薄い。  
-動機は proposal.md の Why。学習パック `08` はリポジトリ内のローカル DB（`backend/data/attendance.db`）を使う。S3 共有ファイルは演習に使わない。
+動機は proposal.md の「なぜ」。学習パック `08` はリポジトリ内のローカル DB（`backend/data/attendance.db`）を使う。S3 共有ファイルは演習に使わない。
 
-## Goals / Non-Goals
+## 目標 / 対象外
 
-**Goals:**
-
+**目標:**
 - JOIN／CTE／窓関数が自然に書ける勤怠ドメインの表＋seed
 - `GET /demo/error` でログ演習ができること
 - 既存画面・API の入出力を変えないこと
 
-**Non-Goals:**
-
+**対象外:**
 - 部署・休暇申請の画面や API を作ること
 - 架空 EC スキーマ（users/orders）を本リポに持ち込むこと
 - 本番勤怠・MariaDB・本番 AWS への接続
 
-## Decisions
+## 決定事項
 
 1. **表の追加（画面なし）**  
    - `departments`（`parent_id` で親子）  
@@ -38,13 +36,13 @@
 4. **seed**  
    実在名禁止。既存3人＋部署2〜3＋申請の境界ケース。`attendance_edits` も1件以上残す／足す。
 
-## Risks / Trade-offs
+## リスク / トレードオフ
 
 - [Risk] build_db し直しでローカル変更が消える → Mitigation: README に「演習前に `python sql/build_db.py`」と書く  
 - [Risk] デプロイ済み共有 DB とローカル schema がずれる → Mitigation: 演習はローカル DB 前提。新表は API 非公開なので画面デプロイは ERROR 経路だけでよい  
 - [Risk] `employees` 列追加で既存テストが壊れる → Mitigation: 列指定 SELECT を確認し、必要ならテストだけ直す
 
-## Migration Plan
+## 移行手順
 
 1. schema / seed 更新 → `python sql/build_db.py`  
 2. `/demo/error` 実装とテスト  

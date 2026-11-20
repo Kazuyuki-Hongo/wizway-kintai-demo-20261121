@@ -1,8 +1,8 @@
-# Design
+# 設計
 
-## Context
+## 前提
 
-動機は proposal.md の Why。仕様の差分は、この change の `specs/` にある。
+動機は proposal.md の「なぜ」。仕様の差分は、この change の `specs/` にある。
 
 リポジトリは `wizway-kintai-demo`。画面は `frontend/`（React + TypeScript）。API は `backend/app.py`（Python Lambda）。合計の式は `sql/month_summary.sql` と、同内容の `backend/sql/month_summary.sql`。表定義は `sql/schema.sql`。同梱の初期データは `sql/build_db.py` が `backend/data/attendance.db` を作る。公開中の共有ファイルは、学習用アカウントの非公開 S3 にある `attendance.db`。各リクエストがダウンロードし、保存が成立したときだけ書き戻す。
 
@@ -10,22 +10,20 @@
 
 実装に入る前に、Serena MCP（namespace は `user-serena`）で `initial_instructions` を呼ぶ。失敗したらコードを編集しない。手順の正本は `.cursor/skills/openspec-apply-change/SKILL.md`。Serena の詳細は `docs/rules/project-rules-serena.md`。
 
-## Goals / Non-Goals
+## 目標 / 対象外
 
-**Goals:**
-
+**目標:**
 - 半休と有休を保存でき、合計は SQL のまま数える
 - 成立した保存だけ記録し、その日の行の下に出す
 - 一覧からその月の CSV を出す
 - すでに共有ファイルにある行を消さずに、表を広げる
 
-**Non-Goals:**
-
+**対象外:**
 - パスワードとセッション
 - 合計を Python で計算し直すこと
 - 公開 URL の変更
 
-## Decisions
+## 決定事項
 
 ### 1. 共有ファイルは起動時に広げる
 
@@ -64,14 +62,14 @@ PUT の JSON に `editor_id` を足す。無い、または空のときは、対
 
 プロファイル `deploy-jisseki` で、アカウントが `655129713987` であることを確認してから `sam deploy` する。プロファイル `deploy` と、アカウント `023194178508` は使わない。スタック名は `wizway-kintai-demo`。画面は既存のフロント用バケットへ出す。公開 URL が変わっていなければ、学習パックの導入メモとコース本文は編集しない。
 
-## Risks / Trade-offs
+## リスク / トレードオフ
 
 - [制約の付け替えに失敗すると共有ファイルが中途半端になる] → 付け替えは1つのトランザクションで行い、失敗したら書き戻さない
 - [半休が1日として数える] → 画面の半休の近くに、実働は入れた時刻から計算する、と1文書く
 - [入力者なしの API は対象本人になる] → 画面は未選択で通信しない。API の既定は仕様どおり対象社員
 - [CSV は保存済みでない日も出す] → 行数は 2026-11 が 90、2026-02 が 84。テストで固定する
 
-## Migration Plan
+## 移行手順
 
 1. 表の拡張、合計 SQL、区分、記録、CSV を API に足し、pytest で確認する
 2. 画面に成功メッセージ、区分、入力者、記録、CSV を足し、Playwright で確認する

@@ -1,27 +1,25 @@
-# Design
+# 設計
 
-## Context
+## 前提
 
-動機は proposal.md の Why。要件は `specs/attendance-overview/spec.md`。
+動機は proposal.md の「なぜ」。要件は `specs/attendance-overview/spec.md`。
 
 このリポジトリ `wizway-kintai-demo` の中で完結する。画面は `frontend/` の React + TypeScript。API は `backend/` の Python Lambda。合計の式は `sql/month_summary.sql`。載せ方は `template.yaml` の SAM、API Gateway、S3、CloudFront。データは共有の SQLite。
 
 挙動を変える実装は、OpenSpec の apply と Serena を使う。Serena の手順は `.cursor/skills/openspec-apply-change/SKILL.md`。接続とシンボルの見方は `docs/rules/project-rules-serena.md`。
 
-## Goals / Non-Goals
+## 目標 / 対象外
 
-**Goals:**
-
+**目標:**
 - 指定月の3人の合計を、1回の GET で返す
 - 画面を開くと一覧が先に出る。行を選ぶと、その人の日ごとの入力になる
 - 合計は既存の `month_summary.sql` の結果を使う
 
-**Non-Goals:**
-
+**対象外:**
 - 日ごとの保存、区分、時刻検証の変更
 - 新しいテーブル、DynamoDB、RDS
 
-## Decisions
+## 決定事項
 
 ### 1. 読み取りは `GET /months/{ym}/overview`
 
@@ -39,12 +37,12 @@
 
 実装後のデプロイは、プロファイル `deploy-jisseki` のアカウントが `655129713987` であることを確認してから行う。スタック名は `wizway-kintai-demo`。プロファイル `deploy` と、アカウント `023194178508` には出さない。本番勤怠のリポジトリ、本番 DB、開発 VM は触らない。
 
-## Risks / Trade-offs
+## リスク / トレードオフ
 
 - [パスの判定順を誤ると、既存の月読み取りが壊れる] → `/months/{ym}/overview` は `/employees` の外に置き、既存の正規表現より前には既存パスを通す
 - [一覧と1人分の合計で式がずれる] → 同じ `_month_summary` を使う。社員1の 18 / 137 / 1 / 1 を両方で確認する
 
-## Migration Plan
+## 移行手順
 
 1. API の GET と画面の切り替えを足す
 2. pytest と Playwright を通す

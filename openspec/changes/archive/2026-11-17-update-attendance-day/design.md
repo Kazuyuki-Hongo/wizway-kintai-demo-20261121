@@ -1,27 +1,25 @@
-# Design
+# 設計
 
-## Context
+## 前提
 
-見本の置き場は `C:\00_remote_git\GitHub\wizway-kintai-demo`。動機は proposal.md の Why。振る舞いの契約は `specs/attendance-day-update`、`specs/attendance-month`、`specs/attendance-summary`。
+見本の置き場は `C:\00_remote_git\GitHub\wizway-kintai-demo`。動機は proposal.md の「なぜ」。振る舞いの契約は `specs/attendance-day-update`、`specs/attendance-month`、`specs/attendance-summary`。
 
 いまの読み取りは `backend/app.py` の GET と、`file:{seed}?mode=ro` の SQLite。月の行は `sql/month_rows.sql` が `attendance_rows` だけを返す。合計の式は `sql/month_summary.sql`。画面は `frontend/src/App.tsx` の1枚で、保存操作は無い。Lambda の配置物は `template.yaml` の `CodeUri: backend/`。`sql/` と同じ SELECT が `backend/sql/` にもある。
 
-## Goals / Non-Goals
+## 目標 / 対象外
 
-**Goals:**
-
+**目標:**
 - 同梱の SQLite を初期データにしたまま、実行環境のコピーへ更新を書く
 - 月の読み取りはカレンダーの全日を返し、保存済みかどうかを区別する
 - 合計の式は SQL のままにする
 - デプロイ前に、向け先が本番勤怠のアカウントでないことを確認する
 
-**Non-Goals:**
-
+**対象外:**
 - 保存済みでない日への INSERT、行の削除
 - データファイルの正本を S3、DynamoDB、RDS に移すこと
 - Serena の接続ゲート自体の変更。ゲートは既に `.cursor/skills/openspec-apply-change/SKILL.md`、`.cursor/skills/openspec-propose/SKILL.md`、`.cursor/rules/openspec-serena-workflow.mdc` にある
 
-## Decisions
+## 決定事項
 
 ### 1. 書き込みは実行環境のコピーだけ
 
@@ -69,14 +67,14 @@ pytest は一時コピーに対して更新と拒否を確認し、`backend/data
 
 載せる先はスタック `wizway-kintai-demo` だけ。デプロイコマンドの前に、呼び出し元のアカウントが本番勤怠のアカウントでないことを確認する。確認できないときはデプロイしない。見本 URL が同じなら、導入メモは変えない。
 
-## Risks / Trade-offs
+## リスク / トレードオフ
 
 - [公開 URL では別の実行環境に当たると保存が見えない] → 画面に、保存は実行環境のあいだだけ残り、やり直すと初期データに戻る、と書く。ローカルと pytest は一時コピーで仕様の Scenario を確認する
 - [温かい Lambda の `/tmp` が保存を持ち続ける] → 実行環境が新しいときだけ初期データからコピーする。戻す操作は、この change では付けない
 - [`sql/` と `backend/sql/` がずれる] → 変える SELECT は両方に同じ内容を置く
 - [学習用アカウントと本番アカウントの取り違え] → デプロイタスクの最初の手順をアカウント確認にし、違うときは中止する
 
-## Migration Plan
+## 移行手順
 
 1. SQL、API、画面、`template.yaml`、テストの順で足す
 2. ローカルで、更新の成功、拒否、2026-11 の30日、2026-02 の28日、合計の再計算を確認する

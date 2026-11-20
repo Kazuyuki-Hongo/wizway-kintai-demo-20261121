@@ -1,6 +1,6 @@
-# Design
+# 設計
 
-## Context
+## 前提
 
 新しいリポジトリは作らない。対象は既存の `wizway-kintai-demo`。
 
@@ -11,26 +11,24 @@
 | SQL | `sql/` と `backend/sql/`。この変更では触らない |
 | AWS | 既存の Lambda と、非公開バケット `DemoDbBucket`。環境変数は `KINTAI_DB_BUCKET` と `KINTAI_DB_KEY`。リソースは足さない |
 
-動機は [proposal.md](proposal.md) の Why。いまの取得は `_prepare_shared_db` がリクエストごとに `download_file` で `/tmp/attendance.db` を上書きする。書き戻しは `_publish_shared_db` で、日の保存、ログイン、ログアウトの成功後に呼ばれる。ローカルと pytest は `KINTAI_RUNTIME_DB` があり、S3 を呼ばない。
+動機は [proposal.md](proposal.md) の「なぜ」。いまの取得は `_prepare_shared_db` がリクエストごとに `download_file` で `/tmp/attendance.db` を上書きする。書き戻しは `_publish_shared_db` で、日の保存、ログイン、ログアウトの成功後に呼ばれる。ローカルと pytest は `KINTAI_RUNTIME_DB` があり、S3 を呼ばない。
 
 実装は `.cursor/skills/openspec-apply-change/SKILL.md` に従う。Serena のプロジェクトルールは `docs/rules/project-rules-serena.md`。
 
-## Goals / Non-Goals
+## 目標 / 対象外
 
-**Goals:**
-
+**目標:**
 - 共有オブジェクトの ETag が同じあいだ、中身の GET をしない
 - ETag が変わった次の読み取りは、その中身を返す
 - 書き戻しが成功した実行環境は、新しい ETag を覚える
 - 書き戻しが失敗した実行環境は、次の読み取りで S3 の中身を取り直す
 
-**Non-Goals:**
-
+**対象外:**
 - 一定時間 S3 を見ないこと
 - 保存時の If-Match による先勝ち
 - Lambda のメモリ、画面の呼び出し回数、スキーマ確認の回数
 
-## Decisions
+## 決定事項
 
 ### 1. 変わったかは条件付き GET で見る
 
@@ -64,14 +62,14 @@ boto3 の S3 クライアントは、その実行環境の最初の利用で作�
 
 `KINTAI_RUNTIME_DB` があるときは、今どおりそのファイルだけを開く。既存の `backend/tests/test_api.py` はこの経路のままにする。条件付き GET の確認は、クライアントと取得先を差し替えた別のテストにする。
 
-## Risks / Trade-offs
+## リスク / トレードオフ
 
 - [覚えていた ETag と S3 がずれる] → 失敗時は ETag を消し、次の読み取りで取り直す。成功時は HEAD の値で覚え直す
 - [取り直しの途中で `/tmp` が壊れる] → 別ファイルに書いてから置き換える。置き換え前に失敗したら ETag は更新しない
 - [同じ実行環境に同時のリクエストは来ない前提] → Lambda の実行環境は1リクエストずつなので、ETag 用のロックは置かない
 - [待ちは残る] → 画面は API を複数回呼ぶ。128MB のままである。2回目以降の中身の GET が無くなるだけである
 
-## Migration Plan
+## 移行手順
 
 リソースとオブジェクトの形は変えない。Lambda のコードだけを載せ替える。
 

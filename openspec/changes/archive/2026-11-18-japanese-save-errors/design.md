@@ -1,24 +1,22 @@
-# Design
+# 設計
 
-## Context
+## 前提
 
-動機は proposal.md の Why。API の `reason` は英語のまま、ログと pytest がそれを見ている。
+動機は proposal.md の「なぜ」。API の `reason` は英語のまま、ログと pytest がそれを見ている。
 
 画面は `frontend/src/App.tsx`。拒否時は `payload.reason` をそのまま出している。
 
-## Goals / Non-Goals
+## 目標 / 対象外
 
-**Goals:**
-
+**目標:**
 - 既知の `reason` を、画面では日本語の文にする
 - 休憩が長すぎる文に、長さであることと `01:00` の例を入れる
 
-**Non-Goals:**
-
+**対象外:**
 - API の `reason` とログの文言を変える
 - 休憩の判定を変える
 
-## Decisions
+## 決定事項
 
 ### 1. 日本語は画面の対応表で出す
 
@@ -30,11 +28,11 @@
 
 学習用アカウント `655129713987`、プロファイル `deploy-jisseki` の画面バケットへ出す。API のスタックは更新しない。
 
-## Risks / Trade-offs
+## リスク / トレードオフ
 
 - [対応表に無い理由が英語のまま出る] → 今返している理由をすべて対応表に入れる
 
-## Migration Plan
+## 移行手順
 
 1. 画面の対応表と Playwright を更新する
 2. アカウントを確認してから、画面だけ公開する

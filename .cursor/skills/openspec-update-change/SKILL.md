@@ -12,6 +12,14 @@ metadata:
 
 Revise a change's existing planning artifacts and keep them coherent. Never edit code.
 
+**Language (ja mix — required for this repo)**
+
+When editing artifacts, keep the same language policy as propose:
+- Japanese for body text and human headings (`変更提案` / `なぜ` / `設計` / `前提` / `タスク` / `作業後の続き` など)
+- English only for OpenSpec machine keywords (`## ADDED Requirements`, `#### Scenario:`, `SHALL`/`MUST`, `GIVEN`/`WHEN`/`THEN`, kebab-case paths)
+- Do not reintroduce upstream English headings (`Why`, `What Changes`, `Goals / Non-Goals`, `Workflow follow-up`, …)
+- Follow `openspec/schemas/spec-driven-custom/templates/` and `openspec/config.yaml`
+
 **Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `schemas`, `view`). Once selected, treat `--store <id>` as sticky for the rest of the workflow. Every unscoped example of those commands below is shorthand: before running it, append the flag. For example, run `openspec status --change "<name>" --json --store "<id>"`, not the unscoped form shown below. Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
 
 **Project check:** These steps expect a project that already uses OpenSpec. Before the first step that writes anything (`new change`, `archive`, `sync specs`, or authoring an artifact file), confirm the project has a root: run `openspec list --json` (with `--store <id>` when a store is selected, since the store is then the root) and read `root`. A root object means the project is set up. `"root": null` means it is not - there is no `openspec/` directory here, and a write such as `openspec new change` would create one as a side effect. The command also exits non-zero, which is that answer rather than a broken CLI, so read the JSON instead of retrying or working around it.

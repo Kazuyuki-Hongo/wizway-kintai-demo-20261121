@@ -1,4 +1,4 @@
-# Tasks
+# タスク
 
 ## 1. 月のカレンダー SELECT
 
@@ -30,7 +30,7 @@
 
 - [x] 7.1 載った URL が README の見本 URL と同じなら、学習パックの導入メモは変えない。変わったときだけ README と導入メモ（common と、ウィズウェイへ配っている版）の URL 行を更新し、コース本文に URL が無いことを確認する
 
-## Workflow follow-up
+## 作業後の続き
 
 - ソースの GitHub への push は、ユーザーが指示してから行う
 - レビューが済んだらこの change を archive する
